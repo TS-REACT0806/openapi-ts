@@ -34,7 +34,7 @@
 - runs in CLI, Node.js 18+, or npx
 - works with OpenAPI 2.0, 3.0, and 3.1
 - customizable types and SDKs
-- clients for your runtime (Fetch API, Axios, Next.js, Nuxt, etc.)
+- clients for your runtime (Fetch API, Angular, Axios, Next.js, Nuxt, etc.)
 - plugin ecosystem to reduce third-party boilerplate
 - custom plugins and custom clients
 - [integration](https://heyapi.dev/openapi-ts/integrations) with Hey API Platform
@@ -91,7 +91,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
         <a href="https://kutt.it/skQUVd" target="_blank">
           <picture height="40px">
             <source media="(prefers-color-scheme: dark)" srcset="https://heyapi.dev/images/scalar-logo-wordmark-480w.jpeg">
-            <img alt="Scalar logo" height="40px" src="https://heyapi.dev/images/scalar-logo-wordmark-480w.jpeg">
+            <img alt="Scalar logo" height="40px" src="https://heyapi.dev/images/scalar-logo-wordmark.svg">
           </picture>
         </a>
         <br/>
@@ -131,7 +131,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
         <a href="https://kutt.it/KkqSaw" target="_blank">
           <picture height="34px">
             <source media="(prefers-color-scheme: dark)" srcset="https://heyapi.dev/images/cella-logo-wordmark-480w.webp">
-            <img alt="Cella logo" height="34px" src="https://heyapi.dev/images/cella-logo-wordmark-480w.jpeg">
+            <img alt="Cella logo" height="34px" src="https://heyapi.dev/images/cella-logo-wordmark.svg">
           </picture>
         </a>
       </td>
@@ -282,6 +282,7 @@ Clients are responsible for sending the actual HTTP requests. Using clients is n
 ### Native Clients
 
 - [`@hey-api/client-fetch`](https://heyapi.dev/openapi-ts/clients/fetch)
+- [`@hey-api/client-angular`](https://heyapi.dev/openapi-ts/clients/angular)
 - [`@hey-api/client-axios`](https://heyapi.dev/openapi-ts/clients/axios)
 - [`@hey-api/client-next`](https://heyapi.dev/openapi-ts/clients/next-js)
 - [`@hey-api/client-nuxt`](https://heyapi.dev/openapi-ts/clients/nuxt)
@@ -290,7 +291,6 @@ Clients are responsible for sending the actual HTTP requests. Using clients is n
 
 The following clients are planned but not in development yet. You can help us prioritize them by voting on [GitHub](https://github.com/hey-api/openapi-ts/labels/RSVP%20%F0%9F%91%8D%F0%9F%91%8E).
 
-- [`@hey-api/client-angular`](https://heyapi.dev/openapi-ts/clients/angular)
 - [`@hey-api/client-effect`](https://heyapi.dev/openapi-ts/clients/effect)
 
 Don't see your client? [Build your own](https://heyapi.dev/openapi-ts/clients/custom) or let us know your interest by [opening an issue](https://github.com/hey-api/openapi-ts/issues).
@@ -308,6 +308,7 @@ These plugins help reduce boilerplate associated with third-party dependencies. 
 - [`@tanstack/solid-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/svelte-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/vue-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
+- [`@angular/common`](https://heyapi.dev/openapi-ts/plugins/angular)
 - [`fastify`](https://heyapi.dev/openapi-ts/plugins/fastify)
 - [`valibot`](https://heyapi.dev/openapi-ts/plugins/valibot)
 - [`zod`](https://heyapi.dev/openapi-ts/plugins/zod)

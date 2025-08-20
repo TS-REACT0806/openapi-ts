@@ -1,3 +1,4 @@
+import type { Logger } from '../../../utils/logger';
 import { normalizeJsonPointer, pathToJsonPointer } from '../../../utils/ref';
 import { childSchemaRelationships } from './schemaChildRelationships';
 
@@ -74,18 +75,31 @@ export const annotateChildScopes = (nodes: Graph['nodes']): void => {
   }
 };
 
+interface Cache {
+  allDependencies: Map<string, Set<string>>;
+  childDependencies: Map<string, Set<string>>;
+  parentToChildren: Map<string, Array<string>>;
+}
+
 /**
  * Recursively collects all $ref dependencies in the subtree rooted at `pointer`.
  */
 const collectAllDependenciesForPointer = ({
+  cache,
   graph,
   pointer,
   visited,
 }: {
+  cache: Cache;
   graph: Graph;
   pointer: string;
   visited: Set<string>;
 }): Set<string> => {
+  const cached = cache.allDependencies.get(pointer);
+  if (cached) {
+    return cached;
+  }
+
   if (visited.has(pointer)) {
     return new Set();
   }
@@ -108,6 +122,7 @@ const collectAllDependenciesForPointer = ({
       allDependencies.add(depPointer);
       // Recursively collect dependencies of the referenced node
       const transitiveDependencies = collectAllDependenciesForPointer({
+        cache,
         graph,
         pointer: depPointer,
         visited,
@@ -119,19 +134,26 @@ const collectAllDependenciesForPointer = ({
   }
 
   // Recursively collect dependencies of all children
-  for (const [childPointer, childInfo] of graph.nodes) {
-    if (childInfo.parentPointer === pointer) {
-      const transitiveDependencies = collectAllDependenciesForPointer({
-        graph,
-        pointer: childPointer,
-        visited,
-      });
+  const children = cache.parentToChildren.get(pointer);
+  if (children) {
+    for (const childPointer of children) {
+      let transitiveDependencies = cache.childDependencies.get(childPointer);
+      if (!transitiveDependencies) {
+        transitiveDependencies = collectAllDependenciesForPointer({
+          cache,
+          graph,
+          pointer: childPointer,
+          visited,
+        });
+        cache.childDependencies.set(childPointer, transitiveDependencies);
+      }
       for (const dep of transitiveDependencies) {
         allDependencies.add(dep);
       }
     }
   }
 
+  cache.allDependencies.set(pointer, allDependencies);
   return allDependencies;
 };
 
@@ -373,9 +395,11 @@ export const seedLocalScopes = (nodes: Graph['nodes']): void => {
  */
 export const buildGraph = (
   root: unknown,
+  logger: Logger,
 ): {
   graph: Graph;
 } => {
+  const eventBuildGraph = logger.timeEvent('build-graph');
   const graph: Graph = {
     allDependencies: new Map(),
     dependencies: new Map(),
@@ -449,6 +473,21 @@ export const buildGraph = (
     path: [],
   });
 
+  const cache: Cache = {
+    allDependencies: new Map(),
+    childDependencies: new Map(),
+    parentToChildren: new Map(),
+  };
+
+  for (const [pointer, nodeInfo] of graph.nodes) {
+    const parent = nodeInfo.parentPointer;
+    if (!parent) continue;
+    if (!cache.parentToChildren.has(parent)) {
+      cache.parentToChildren.set(parent, []);
+    }
+    cache.parentToChildren.get(parent)!.push(pointer);
+  }
+
   for (const [pointerFrom, pointers] of graph.dependencies) {
     for (const pointerTo of pointers) {
       if (!graph.reverseDependencies.has(pointerTo)) {
@@ -464,12 +503,20 @@ export const buildGraph = (
 
   for (const pointer of graph.nodes.keys()) {
     const allDependencies = collectAllDependenciesForPointer({
+      cache,
       graph,
       pointer,
       visited: new Set(),
     });
     graph.allDependencies.set(pointer, allDependencies);
   }
+
+  eventBuildGraph.timeEnd();
+
+  // functions creating data for debug scripts located in `debug-helpers/`
+  // const { maxChildren, maxDepth, totalNodes } = analyzeGraphStructure(graph);
+  // const nodesForViz = exportGraphForVisualization(graph);
+  // fs.writeFileSync('debug-helpers/graph.json', JSON.stringify(nodesForViz, null, 2));
 
   return { graph };
 };

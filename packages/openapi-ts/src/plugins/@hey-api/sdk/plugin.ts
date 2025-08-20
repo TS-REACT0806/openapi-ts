@@ -114,6 +114,7 @@ const generateClassSdk = ({
   plugin: HeyApiSdkPlugin['Instance'];
 }) => {
   const client = getClientPlugin(plugin.context.config);
+  const isAngularClient = client.name === '@hey-api/client-angular';
   const isNuxtClient = client.name === '@hey-api/client-nuxt';
   const file = plugin.context.file({ id: sdkId })!;
   const sdkClasses = new Map<string, SdkClassEntry>();
@@ -162,7 +163,7 @@ const generateClassSdk = ({
         }
 
         const parentClassName = entry.path[index - 1];
-        if (parentClassName) {
+        if (parentClassName && parentClassName !== currentClassName) {
           const parentClass = sdkClasses.get(parentClassName)!;
           parentClass.classes.add(currentClassName);
           sdkClasses.set(parentClassName, parentClass);
@@ -196,7 +197,7 @@ const generateClassSdk = ({
         const functionNode = tsc.methodDeclaration({
           accessLevel: 'public',
           comment: createOperationComment({ operation }),
-          isStatic: !plugin.config.instance,
+          isStatic: isAngularClient ? false : !plugin.config.instance,
           name: entry.methodName,
           parameters: opParameters.parameters,
           returnType: undefined,
@@ -297,6 +298,17 @@ const generateClassSdk = ({
     }
 
     const node = tsc.classDeclaration({
+      decorator:
+        currentClass.root && isAngularClient
+          ? {
+              args: [
+                {
+                  providedIn: 'root',
+                },
+              ],
+              name: 'Injectable',
+            }
+          : undefined,
       exportClass: currentClass.root,
       extendedClasses: plugin.config.instance ? ['_HeyApiClient'] : undefined,
       name: currentClass.className,
@@ -425,12 +437,20 @@ export const handler: HeyApiSdkPlugin['Handler'] = ({ plugin }) => {
   });
 
   const client = getClientPlugin(plugin.context.config);
+  const isAngularClient = client.name === '@hey-api/client-angular';
   const isNuxtClient = client.name === '@hey-api/client-nuxt';
   if (isNuxtClient) {
     file.import({
       asType: true,
       module: clientModule,
       name: 'Composable',
+    });
+  }
+
+  if (isAngularClient && plugin.config.asClass) {
+    file.import({
+      module: '@angular/core',
+      name: 'Injectable',
     });
   }
 

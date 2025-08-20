@@ -1,5 +1,77 @@
 # @hey-api/openapi-ts
 
+## 0.80.15
+
+### Patch Changes
+
+- [#2480](https://github.com/hey-api/openapi-ts/pull/2480) [`d9af1bb`](https://github.com/hey-api/openapi-ts/commit/d9af1bb3d1abb4c8caa4f8fd6a3fcef50d2187d9) Thanks [@dracomithril](https://github.com/dracomithril)! - fix(client): call `auth()` function for every unique security `name`
+
+- [#2481](https://github.com/hey-api/openapi-ts/pull/2481) [`7e8264e`](https://github.com/hey-api/openapi-ts/commit/7e8264eae199f4ce52f1666937bca838626cacc3) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(parser): cache parent to children nodes
+
+## 0.80.14
+
+### Patch Changes
+
+- [#2475](https://github.com/hey-api/openapi-ts/pull/2475) [`b9204ad`](https://github.com/hey-api/openapi-ts/commit/b9204ad1603374713d507deaa416ed56d6ce6aea) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(parser): cache visited graph nodes to boost performance
+
+## 0.80.13
+
+### Patch Changes
+
+- [#2471](https://github.com/hey-api/openapi-ts/pull/2471) [`82af768`](https://github.com/hey-api/openapi-ts/commit/82af768a102409f981006a4b6f0219f9d86256dc) Thanks [@josstn](https://github.com/josstn)! - fix(parser): handle non-ascii characters in discriminator
+
+## 0.80.12
+
+### Patch Changes
+
+- [#2467](https://github.com/hey-api/openapi-ts/pull/2467) [`c76a8de`](https://github.com/hey-api/openapi-ts/commit/c76a8decad12a4a67cab83827bb007b36d794f6a) Thanks [@bjornhenriksson](https://github.com/bjornhenriksson)! - fix(zod): add `dates.local` option to allow unqualified (timezone-less) datetimes
+
+## 0.80.11
+
+### Patch Changes
+
+- [#2452](https://github.com/hey-api/openapi-ts/pull/2452) [`fb5b621`](https://github.com/hey-api/openapi-ts/commit/fb5b621f89bfc7acf33b0156ffcdca87646d667f) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(client): add `@hey-api/client-angular` client
+
+- [#2423](https://github.com/hey-api/openapi-ts/pull/2423) [`554e9a6`](https://github.com/hey-api/openapi-ts/commit/554e9a6b4513eff4785ef48a927c6fea7a8eb873) Thanks [@max-scopp](https://github.com/max-scopp)! - feat(plugin): add `@angular/common` plugin
+
+## 0.80.10
+
+### Patch Changes
+
+- [#2438](https://github.com/hey-api/openapi-ts/pull/2438) [`760fd61`](https://github.com/hey-api/openapi-ts/commit/760fd61701080a890ba8e8efc5eac46699db4bbf) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(client): handle dates in formdata serializer
+
+## 0.80.9
+
+### Patch Changes
+
+- [#2426](https://github.com/hey-api/openapi-ts/pull/2426) [`7308d9b`](https://github.com/hey-api/openapi-ts/commit/7308d9b8f5eb96d984dc323b5e6276eafcd30382) Thanks [@flow96](https://github.com/flow96)! - fix(sdk): handle infinite loop in nested operation IDs and tags with duplicate values
+
+## 0.80.8
+
+### Patch Changes
+
+- [#2418](https://github.com/hey-api/openapi-ts/pull/2418) [`340a6cd`](https://github.com/hey-api/openapi-ts/commit/340a6cd8f90fac70ff752c11abfa4691180bd34a) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(client): add auto-generated header to client files
+
+- [#2418](https://github.com/hey-api/openapi-ts/pull/2418) [`969d7cf`](https://github.com/hey-api/openapi-ts/commit/969d7cfd7ff17705148477e4ce2b0ca3cee81de9) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(client): correctly rename client files with nodenext bundler
+
+- [#2416](https://github.com/hey-api/openapi-ts/pull/2416) [`9cff8c8`](https://github.com/hey-api/openapi-ts/commit/9cff8c871e2707b22f9ea521bce95c6ffd532079) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(tanstack-query): set correct name for pagination parameters in infinite query options
+
+## 0.80.7
+
+### Patch Changes
+
+- [#2396](https://github.com/hey-api/openapi-ts/pull/2396) [`b0958a0`](https://github.com/hey-api/openapi-ts/commit/b0958a05c308c4fcd8ca17d61d8691b6fb3471fe) Thanks [@Shinigami92](https://github.com/Shinigami92)! - fix(client): add `.gen` to client files
+
+## 0.80.6
+
+### Patch Changes
+
+- [#2399](https://github.com/hey-api/openapi-ts/pull/2399) [`ef32c27`](https://github.com/hey-api/openapi-ts/commit/ef32c27a147c85216773ac1fb392363034f23fd1) Thanks [@ahmedrowaihi](https://github.com/ahmedrowaihi)! - feat(tanstack-query): support generating `meta` fields
+
+- [#2406](https://github.com/hey-api/openapi-ts/pull/2406) [`04fc0f3`](https://github.com/hey-api/openapi-ts/commit/04fc0f3106b33c1de8a78a401187617c3a788bc5) Thanks [@dovca](https://github.com/dovca)! - feat(clients): pass raw `body` to interceptors, provide serialized body in `serializedBody`
+
+- [#2407](https://github.com/hey-api/openapi-ts/pull/2407) [`9704055`](https://github.com/hey-api/openapi-ts/commit/970405534e26ddebaaaed71e2a7a242e005ca44e) Thanks [@flow96](https://github.com/flow96)! - fix(sdk): prevent infinite loop when a schema tag matches operation ID
+
 ## 0.80.5
 
 ### Patch Changes

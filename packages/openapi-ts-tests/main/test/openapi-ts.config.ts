@@ -31,17 +31,13 @@ export default defineConfig(() => {
       //   openapi: '3.1.0',
       //   paths: {},
       // },
-      // path: path.resolve(
-      //   getSpecsPath(),
-      //   '3.1.x',
-      //   'invalid',
-      //   'servers-entry.yaml',
-      // ),
       path: path.resolve(
         getSpecsPath(),
         '3.1.x',
+        // 'invalid',
+        'openai.yaml',
         // 'full.yaml',
-        'validators-circular-ref.json',
+        // 'validators-circular-ref.json',
       ),
       // path: 'http://localhost:4000/',
       // path: 'https://get.heyapi.dev/',
@@ -59,13 +55,13 @@ export default defineConfig(() => {
       // },
     },
     logs: {
-      // level: 'silent',
+      // level: 'debug',
       path: './logs',
     },
     // name: 'foo',
     output: {
       // case: 'snake_case',
-      clean: false,
+      clean: true,
       // format: 'prettier',
       // indexFile: false,
       // lint: 'eslint',
@@ -85,7 +81,7 @@ export default defineConfig(() => {
           //   // '/^[A-Z]+ /v1//',
           // ],
         },
-        // orphans: false,
+        // orphans: true,
         // preserveOrder: true,
         // schemas: {
         //   include: ['Foo'],
@@ -112,7 +108,7 @@ export default defineConfig(() => {
           // name: '{{name}}',
         },
         readWrite: {
-          enabled: false,
+          // enabled: false,
           requests: '{{name}}Writable',
           responses: '{{name}}',
         },
@@ -128,9 +124,10 @@ export default defineConfig(() => {
         // baseUrl: false,
         // exportFromIndex: true,
         name: '@hey-api/client-fetch',
+        // name: '@hey-api/client-angular',
         // name: 'legacy/angular',
         // strictBaseUrl: true,
-        throwOnError: true,
+        // throwOnError: true,
       },
       {
         // case: 'snake_case',
@@ -163,11 +160,11 @@ export default defineConfig(() => {
         // instance: true,
         name: '@hey-api/sdk',
         // operationId: false,
-        params: 'experiment',
+        // params: 'experiment',
         // responseStyle: 'data',
         // transformer: '@hey-api/transformers',
         // transformer: true,
-        validator: 'zod',
+        // validator: 'zod',
         // validator: {
         //   request: 'zod',
         //   response: 'zod',
@@ -194,7 +191,7 @@ export default defineConfig(() => {
         // mutationOptions: {
         //   name: '{{name}}MO',
         // },
-        // name: '@tanstack/react-query',
+        name: '@tanstack/react-query',
         // queryKeys: {
         //   name: '{{name}}QK',
         // },
@@ -231,9 +228,9 @@ export default defineConfig(() => {
           //     infer: 'D{{name}}ZodType',
           //   },
         },
-        // exportFromIndex: true,
+        exportFromIndex: true,
         metadata: true,
-        name: 'zod',
+        // name: 'zod',
         // requests: {
         //   // case: 'SCREAMING_SNAKE_CASE',
         //   // name: 'z{{name}}TestData',
@@ -258,6 +255,12 @@ export default defineConfig(() => {
         exportFromIndex: true,
         // name: '@hey-api/schemas',
         // type: 'json',
+      },
+      {
+        // httpRequest
+        // httpResource
+        exportFromIndex: true,
+        // name: '@angular/common',
       },
     ],
     // useOptions: false,
