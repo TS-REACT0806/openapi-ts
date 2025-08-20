@@ -1,5 +1,11 @@
 # @hey-api/openapi-ts
 
+## 0.80.16
+
+### Patch Changes
+
+- [#2485](https://github.com/hey-api/openapi-ts/pull/2485) [`e074a36`](https://github.com/hey-api/openapi-ts/commit/e074a3600701badc7f220b283a55188dc85a5572) Thanks [@bombillazo](https://github.com/bombillazo)! - feat(parser): input supports ReadMe API Registry with `readme:` prefix
+
 ## 0.80.15
 
 ### Patch Changes
