@@ -46,6 +46,13 @@ describe(`OpenAPI ${version}`, () => {
   const scenarios = [
     {
       config: createConfig({
+        input: 'pattern-properties.json',
+        output: 'pattern-properties',
+      }),
+      description: 'handles pattern properties',
+    },
+    {
+      config: createConfig({
         input: 'additional-properties-false.json',
         output: 'additional-properties-false',
       }),
@@ -466,6 +473,14 @@ describe(`OpenAPI ${version}`, () => {
     },
     {
       config: createConfig({
+        input: 'union-types.json',
+        output: 'union-types',
+        plugins: ['@hey-api/typescript'],
+      }),
+      description: 'handles union of primitive types',
+    },
+    {
+      config: createConfig({
         input: 'enum-null.json',
         output: 'enum-null',
         plugins: ['@hey-api/typescript', 'valibot'],
@@ -806,6 +821,234 @@ describe(`OpenAPI ${version}`, () => {
       }),
       description:
         'generates validator schemas for all integer format combinations (number/integer/string types with int8, int16, int32, int64, uint8, uint16, uint32, uint64 formats)',
+    },
+    // TODO: add Pinia Colada snapshots
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/default',
+    //     plugins: ['@pinia/colada'],
+    //   }),
+    //   description: 'generates Pinia Colada plugin code with default settings',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/operationOverrides',
+    //     plugins: [
+    //       {
+    //         name: '@pinia/colada',
+    //         operationTypes: {
+    //           addPet: 'query',
+    //           getPetById: 'both',
+    //         },
+    //       },
+    //     ],
+    //   }),
+    //   description:
+    //     'generates Pinia Colada plugin code with operation type overrides',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/groupByTag',
+    //     plugins: [
+    //       {
+    //         groupByTag: true,
+    //         name: '@pinia/colada',
+    //       },
+    //     ],
+    //   }),
+    //   description: 'generates Pinia Colada plugin code grouped by OpenAPI tags',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/groupByTagWithIndex',
+    //     plugins: [
+    //       {
+    //         exportFromIndex: true,
+    //         groupByTag: true,
+    //         name: '@pinia/colada',
+    //       },
+    //     ],
+    //   }),
+    //   description:
+    //     'generates Pinia Colada plugin code grouped by tags with index file',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/customNaming',
+    //     plugins: [
+    //       {
+    //         mutationOptions: {
+    //           name: '{{name}}MutationOptions',
+    //         },
+    //         name: '@pinia/colada',
+    //         queryOptions: {
+    //           name: '{{name}}QueryOptions',
+    //         },
+    //       },
+    //     ],
+    //   }),
+    //   description:
+    //     'generates Pinia Colada plugin code with custom naming patterns',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/caseSettings',
+    //     plugins: [
+    //       {
+    //         case: 'PascalCase',
+    //         mutationOptions: {
+    //           case: 'snake_case',
+    //         },
+    //         name: '@pinia/colada',
+    //         queryOptions: {
+    //           case: 'camelCase',
+    //         },
+    //       },
+    //     ],
+    //   }),
+    //   description:
+    //     'generates Pinia Colada plugin code with different case settings',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/disabledOptions',
+    //     plugins: [
+    //       {
+    //         mutationOptions: {
+    //           enabled: true,
+    //         },
+    //         name: '@pinia/colada',
+    //         queryOptions: false,
+    //       },
+    //     ],
+    //   }),
+    //   description: 'generates Pinia Colada plugin code with queries disabled',
+    // },
+    // {
+    //   config: createConfig({
+    //     input: 'petstore.yaml',
+    //     output: 'plugins/@pinia/colada/complexConfiguration',
+    //     plugins: [
+    //       {
+    //         exportFromIndex: true,
+    //         groupByTag: true,
+    //         mutationOptions: {
+    //           case: 'camelCase',
+    //           meta: (operation) => ({
+    //             method: operation.method,
+    //             operationId: operation.id,
+    //           }),
+    //           name: 'use{{name}}Mutation',
+    //         },
+    //         name: '@pinia/colada',
+    //         operationTypes: {
+    //           addPet: 'query',
+    //           getPetById: 'both',
+    //           updatePet: 'mutation',
+    //         },
+    //         queryOptions: {
+    //           case: 'camelCase',
+    //           meta: (operation) => ({
+    //             operationId: operation.id,
+    //             tags: operation.tags,
+    //           }),
+    //           name: 'use{{name}}Query',
+    //         },
+    //       },
+    //     ],
+    //   }),
+    //   description:
+    //     'generates Pinia Colada plugin code with complex configuration combining all features',
+    // },
+    {
+      config: createConfig({
+        input: 'opencode.yaml',
+        output: 'sse-angular',
+        parser: {
+          filters: {
+            operations: {
+              include: ['GET /event'],
+            },
+          },
+        },
+        plugins: ['@hey-api/client-angular', '@hey-api/sdk'],
+      }),
+      description: 'client with SSE (Angular)',
+    },
+    {
+      config: createConfig({
+        input: 'opencode.yaml',
+        output: 'sse-axios',
+        parser: {
+          filters: {
+            operations: {
+              include: ['GET /event'],
+            },
+          },
+        },
+        plugins: ['@hey-api/client-axios', '@hey-api/sdk'],
+      }),
+      description: 'client with SSE (Axios)',
+    },
+    {
+      config: createConfig({
+        input: 'opencode.yaml',
+        output: 'sse-fetch',
+        parser: {
+          filters: {
+            operations: {
+              include: ['GET /event'],
+            },
+          },
+        },
+        plugins: ['@hey-api/client-fetch', '@hey-api/sdk'],
+      }),
+      description: 'client with SSE (Fetch)',
+    },
+    {
+      config: createConfig({
+        input: 'opencode.yaml',
+        output: 'sse-next',
+        parser: {
+          filters: {
+            operations: {
+              include: ['GET /event'],
+            },
+          },
+        },
+        plugins: ['@hey-api/client-next', '@hey-api/sdk'],
+      }),
+      description: 'client with SSE (Next.js)',
+    },
+    {
+      config: createConfig({
+        input: 'opencode.yaml',
+        output: 'sse-nuxt',
+        parser: {
+          filters: {
+            operations: {
+              include: ['GET /event'],
+            },
+          },
+        },
+        plugins: ['@hey-api/client-nuxt', '@hey-api/sdk'],
+      }),
+      description: 'client with SSE (Nuxt)',
+    },
+    {
+      config: createConfig({
+        input: 'zoom-video-sdk.json',
+        output: 'webhooks',
+        plugins: ['@hey-api/typescript', 'valibot', 'zod'],
+      }),
+      description: 'webhook types and validator schemas',
     },
   ];
 

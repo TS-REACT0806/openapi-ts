@@ -26,9 +26,6 @@
     "format": "prettier --write .",
     "lint:fix": "prettier --check --write . && eslint . --fix",
     "lint": "prettier --check . && eslint .",
-    "openapi-ts": "turbo run $1 --filter=\"@hey-api/openapi-ts\"",
-    "openapi-ts-tests": "turbo run $1 --filter=\"./packages/openapi-ts-tests/**/*\"",
-    "openapi-ts-tests-sample": "turbo run $1 --filter=\"./packages/openapi-ts-tests/zod/v4\"",
     "prepare": "husky",
     "test:coverage": "turbo run test:coverage",
     "test:e2e": "turbo run test:e2e",
@@ -64,10 +61,10 @@
     "rollup": "4.31.0",
     "rollup-plugin-dts": "6.1.1",
     "tsup": "8.4.0",
-    "turbo": "2.5.5",
+    "turbo": "2.5.6",
     "typescript": "5.8.3",
     "typescript-eslint": "8.29.1",
     "vitest": "3.1.1"
   },
-  "packageManager": "pnpm@10.14.0"
+  "packageManager": "pnpm@10.15.0"
 }

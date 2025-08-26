@@ -15,6 +15,8 @@ import { createClientOptions } from './clientOptions';
 import { operationToType } from './operation';
 import { typesId } from './ref';
 import type { HeyApiTypeScriptPlugin, PluginState } from './types';
+import { webhookToType } from './webhook';
+import { createWebhooks } from './webhooks';
 
 export type OnRef = (id: string) => void;
 
@@ -244,14 +246,41 @@ const objectTypeToIdentifier = ({
     }
   }
 
-  if (
-    schema.additionalProperties &&
-    (schema.additionalProperties.type !== 'never' || !indexPropertyItems.length)
-  ) {
-    if (schema.additionalProperties.type === 'never') {
-      indexPropertyItems = [schema.additionalProperties];
-    } else {
-      indexPropertyItems.unshift(schema.additionalProperties);
+  // include pattern value schemas into the index union
+  if (schema.patternProperties) {
+    for (const pattern in schema.patternProperties) {
+      const ir = schema.patternProperties[pattern]!;
+      indexPropertyItems.unshift(ir);
+    }
+  }
+
+  const hasPatterns =
+    !!schema.patternProperties &&
+    Object.keys(schema.patternProperties).length > 0;
+
+  const addPropsRaw = schema.additionalProperties;
+  const addPropsObj =
+    addPropsRaw !== false && addPropsRaw
+      ? (addPropsRaw as IR.SchemaObject)
+      : undefined;
+  const shouldCreateIndex =
+    hasPatterns ||
+    (!!addPropsObj &&
+      (addPropsObj.type !== 'never' || !indexPropertyItems.length));
+
+  if (shouldCreateIndex) {
+    // only inject additionalProperties when it’s not "never"
+    const addProps = addPropsObj;
+    if (addProps && addProps.type !== 'never') {
+      indexPropertyItems.unshift(addProps);
+    } else if (
+      !hasPatterns &&
+      !indexPropertyItems.length &&
+      addProps &&
+      addProps.type === 'never'
+    ) {
+      // keep "never" only when there are NO patterns and NO explicit properties
+      indexPropertyItems = [addProps];
     }
 
     if (hasOptionalProperties) {
@@ -263,18 +292,20 @@ const objectTypeToIdentifier = ({
     indexProperty = {
       isRequired: !schema.propertyNames,
       name: 'key',
-      type: schemaToType({
-        onRef,
-        plugin,
-        schema:
-          indexPropertyItems.length === 1
-            ? indexPropertyItems[0]!
-            : {
-                items: indexPropertyItems,
-                logicalOperator: 'or',
-              },
-        state,
-      }),
+      type:
+        indexPropertyItems.length === 1
+          ? schemaToType({
+              onRef,
+              plugin,
+              schema: indexPropertyItems[0]!,
+              state,
+            })
+          : schemaToType({
+              onRef,
+              plugin,
+              schema: { items: indexPropertyItems, logicalOperator: 'or' },
+              state,
+            }),
     };
 
     if (schema.propertyNames?.$ref) {
@@ -677,8 +708,23 @@ export const handler: HeyApiTypeScriptPlugin['Handler'] = ({ plugin }) => {
       name: clientOptionsName,
     },
   );
+  // reserve identifier for Webhooks
+  const webhooksName = buildName({
+    config: {
+      case: plugin.config.case,
+    },
+    name: 'Webhooks',
+  });
+  const webhooksNodeInfo = file.updateNode(
+    plugin.api.getId({ type: 'Webhooks' }),
+    {
+      exported: true,
+      name: webhooksName,
+    },
+  );
 
   const servers: Array<IR.ServerObject> = [];
+  const webhookNames: Array<string> = [];
 
   plugin.forEach(
     'operation',
@@ -686,6 +732,7 @@ export const handler: HeyApiTypeScriptPlugin['Handler'] = ({ plugin }) => {
     'requestBody',
     'schema',
     'server',
+    'webhook',
     (event) => {
       if (event.type === 'operation') {
         operationToType({ operation: event.operation, plugin, state });
@@ -712,6 +759,13 @@ export const handler: HeyApiTypeScriptPlugin['Handler'] = ({ plugin }) => {
         });
       } else if (event.type === 'server') {
         servers.push(event.server);
+      } else if (event.type === 'webhook') {
+        const webhookName = webhookToType({
+          operation: event.operation,
+          plugin,
+          state,
+        });
+        webhookNames.push(webhookName);
       }
     },
   );
@@ -765,4 +819,5 @@ export const handler: HeyApiTypeScriptPlugin['Handler'] = ({ plugin }) => {
   }
 
   createClientOptions({ nodeInfo: clientOptionsNodeInfo, plugin, servers });
+  createWebhooks({ nodeInfo: webhooksNodeInfo, plugin, webhookNames });
 };

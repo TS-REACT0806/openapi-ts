@@ -1,5 +1,5 @@
 <div align="center">
-  <img alt="Hey API logo" height="150" src="https://heyapi.dev/images/logo-300w.png" width="150">
+  <img alt="Two people looking at the blueprint" src="https://heyapi.dev/images/blueprint-640w.png" width="320">
   <h1 align="center"><b>OpenAPI TypeScript</b></h1>
   <p align="center">🚀 The OpenAPI to TypeScript codegen. Generate clients, SDKs, validators, and more.</p>
 </div>
@@ -91,7 +91,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
         <a href="https://kutt.it/skQUVd" target="_blank">
           <picture height="40px">
             <source media="(prefers-color-scheme: dark)" srcset="https://heyapi.dev/images/scalar-logo-wordmark-480w.jpeg">
-            <img alt="Scalar logo" height="40px" src="https://heyapi.dev/images/scalar-logo-wordmark.svg">
+            <img alt="Scalar logo" height="40px" src="https://heyapi.dev/scalar-logo-wordmark.svg">
           </picture>
         </a>
         <br/>
@@ -102,7 +102,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
       <td align="center">
         <a href="https://kutt.it/Dr9GuW" target="_blank">
           <picture height="40px">
-            <img alt="FastAPI logo" height="40px" src="https://heyapi.dev/images/fastapi-logo-wordmark.svg">
+            <img alt="FastAPI logo" height="40px" src="https://heyapi.dev/fastapi-logo-wordmark.svg">
           </picture>
         </a>
         <br/>
@@ -131,7 +131,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
         <a href="https://kutt.it/KkqSaw" target="_blank">
           <picture height="34px">
             <source media="(prefers-color-scheme: dark)" srcset="https://heyapi.dev/images/cella-logo-wordmark-480w.webp">
-            <img alt="Cella logo" height="34px" src="https://heyapi.dev/images/cella-logo-wordmark.svg">
+            <img alt="Cella logo" height="34px" src="https://heyapi.dev/cella-logo-wordmark.svg">
           </picture>
         </a>
       </td>
@@ -144,9 +144,7 @@ Help Hey API stay around for the long haul by becoming a [sponsor](https://githu
 The fastest way to use `@hey-api/openapi-ts` is via npx
 
 ```sh
-npx @hey-api/openapi-ts \
-  -i https://get.heyapi.dev/hey-api/backend \
-  -o src/client
+npx @hey-api/openapi-ts -i hey-api/backend -o src/client
 ```
 
 Congratulations on creating your first client! 🎉 You can learn more about the generated files on the [Output](https://heyapi.dev/openapi-ts/output) page.
@@ -213,7 +211,7 @@ You can also generate output programmatically by importing `@hey-api/openapi-ts`
 import { createClient } from '@hey-api/openapi-ts';
 
 createClient({
-  input: 'https://get.heyapi.dev/hey-api/backend',
+  input: 'hey-api/backend', // sign up at app.heyapi.dev
   output: 'src/client',
 });
 ```
@@ -228,7 +226,7 @@ createClient({
 import { defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-  input: 'https://get.heyapi.dev/hey-api/backend',
+  input: 'hey-api/backend', // sign up at app.heyapi.dev
   output: 'src/client',
 });
 ```
@@ -238,7 +236,7 @@ export default defineConfig({
 ```js
 /** @type {import('@hey-api/openapi-ts').UserConfig} */
 module.exports = {
-  input: 'https://get.heyapi.dev/hey-api/backend',
+  input: 'hey-api/backend', // sign up at app.heyapi.dev
   output: 'src/client',
 };
 ```
@@ -248,7 +246,7 @@ module.exports = {
 ```js
 /** @type {import('@hey-api/openapi-ts').UserConfig} */
 export default {
-  input: 'https://get.heyapi.dev/hey-api/backend',
+  input: 'hey-api/backend', // sign up at app.heyapi.dev
   output: 'src/client',
 };
 ```
@@ -299,16 +297,17 @@ Don't see your client? [Build your own](https://heyapi.dev/openapi-ts/clients/cu
 
 These plugins help reduce boilerplate associated with third-party dependencies. Hey API natively supports the most popular packages. Please open an issue on [GitHub](https://github.com/hey-api/openapi-ts/issues) if you'd like us to support your favorite package.
 
+- [`@angular/common`](https://heyapi.dev/openapi-ts/plugins/angular)
 - [`@hey-api/schemas`](https://heyapi.dev/openapi-ts/output/json-schema)
 - [`@hey-api/sdk`](https://heyapi.dev/openapi-ts/output/sdk)
 - [`@hey-api/transformers`](https://heyapi.dev/openapi-ts/transformers)
 - [`@hey-api/typescript`](https://heyapi.dev/openapi-ts/output/typescript)
+- [`@pinia/colada`](https://heyapi.dev/openapi-ts/plugins/pinia-colada)
 - [`@tanstack/angular-query-experimental`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/react-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/solid-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/svelte-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
 - [`@tanstack/vue-query`](https://heyapi.dev/openapi-ts/plugins/tanstack-query)
-- [`@angular/common`](https://heyapi.dev/openapi-ts/plugins/angular)
 - [`fastify`](https://heyapi.dev/openapi-ts/plugins/fastify)
 - [`valibot`](https://heyapi.dev/openapi-ts/plugins/valibot)
 - [`zod`](https://heyapi.dev/openapi-ts/plugins/zod)
@@ -320,15 +319,16 @@ The following plugins are planned but not in development yet. You can help us pr
 - [Adonis](https://heyapi.dev/openapi-ts/plugins/adonis)
 - [Ajv](https://heyapi.dev/openapi-ts/plugins/ajv)
 - [Arktype](https://heyapi.dev/openapi-ts/plugins/arktype)
+- [Chance](https://heyapi.dev/openapi-ts/plugins/chance)
 - [Express](https://heyapi.dev/openapi-ts/plugins/express)
 - [Faker](https://heyapi.dev/openapi-ts/plugins/faker)
+- [Falso](https://heyapi.dev/openapi-ts/plugins/falso)
 - [Hono](https://heyapi.dev/openapi-ts/plugins/hono)
 - [Joi](https://heyapi.dev/openapi-ts/plugins/joi)
 - [Koa](https://heyapi.dev/openapi-ts/plugins/koa)
 - [MSW](https://heyapi.dev/openapi-ts/plugins/msw)
 - [Nest](https://heyapi.dev/openapi-ts/plugins/nest)
 - [Nock](https://heyapi.dev/openapi-ts/plugins/nock)
-- [Pinia Colada](https://heyapi.dev/openapi-ts/plugins/pinia-colada)
 - [Superstruct](https://heyapi.dev/openapi-ts/plugins/superstruct)
 - [Supertest](https://heyapi.dev/openapi-ts/plugins/supertest)
 - [SWR](https://heyapi.dev/openapi-ts/plugins/swr)

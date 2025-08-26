@@ -334,7 +334,7 @@ type UnwrapRefs<T> =
         ? { [K in keyof T]: UnwrapRefs<T[K]> }
         : T;
 
-const unwrapRefs = <T>(value: T): UnwrapRefs<T> => {
+export const unwrapRefs = <T>(value: T): UnwrapRefs<T> => {
   if (value === null || typeof value !== 'object' || value instanceof Headers) {
     return (isRef(value) ? unref(value) : value) as UnwrapRefs<T>;
   }
@@ -369,6 +369,7 @@ export const executeFetchFn = (
   fetchFn: Required<Config>['$fetch'],
 ) => {
   const unwrappedOpts = unwrapRefs(opts);
+  unwrappedOpts.rawBody = unwrappedOpts.body;
   unwrappedOpts.body = serializeBody(unwrappedOpts);
   return fetchFn(
     buildUrl(opts),

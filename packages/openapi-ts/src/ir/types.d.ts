@@ -3,7 +3,8 @@ import type {
   SecuritySchemeObject,
   ServerObject,
 } from '../openApi/3.1.x/types/spec';
-import type { ContextFile as CtxFile, IRContext } from './context';
+import type { StringCase } from '../types/case';
+import type { IRContext } from './context';
 import type { IRMediaType } from './mediaType';
 
 interface IRBodyObject {
@@ -22,6 +23,86 @@ interface IRComponentsObject {
   parameters?: Record<string, IRParameterObject>;
   requestBodies?: Record<string, IRRequestBodyObject>;
   schemas?: Record<string, IRSchemaObject>;
+}
+
+interface IRContextFile {
+  /**
+   * Define casing for identifiers in this file.
+   */
+  case?: StringCase;
+  /**
+   * Should the exports from this file be re-exported in the index barrel file?
+   */
+  exportFromIndex?: boolean;
+  /**
+   * Unique file identifier.
+   */
+  id: string;
+  /**
+   * Relative file path to the output path.
+   *
+   * @example
+   * 'bar/foo.ts'
+   */
+  path: string;
+}
+
+interface IRHooks {
+  /**
+   * Hooks specifically for overriding operations behavior.
+   *
+   * Use these to classify operations, decide which outputs to generate,
+   * or apply custom behavior to individual operations.
+   */
+  operations?: {
+    /**
+     * Classify the given operation into one or more kinds.
+     *
+     * Each kind determines how we treat the operation (e.g., generating queries or mutations).
+     *
+     * **Default behavior:**
+     * - GET → 'query'
+     * - DELETE, PATCH, POST, PUT → 'mutation'
+     *
+     * **Resolution order:**
+     * 1. If `isQuery` or `isMutation` returns `true` or `false`, that overrides `getKind`.
+     * 2. If `isQuery` or `isMutation` returns `undefined`, the result of `getKind` is used.
+     *
+     * @param operation - The operation object to classify.
+     * @returns An array containing one or more of 'query' or 'mutation'.
+     */
+    getKind?: (
+      operation: IROperationObject,
+    ) => ReadonlyArray<'mutation' | 'query'>;
+    /**
+     * Check if the given operation should be treated as a mutation.
+     *
+     * This affects which outputs are generated for the operation.
+     *
+     * **Default behavior:** DELETE, PATCH, POST, and PUT operations are treated as mutations.
+     *
+     * **Resolution order:** If this returns `true` or `false`, it overrides `getKind`.
+     * If it returns `undefined`, `getKind` is used instead.
+     *
+     * @param operation - The operation object to check.
+     * @returns true if the operation is a mutation, false otherwise, or undefined to fallback to `getKind`.
+     */
+    isMutation?: (operation: IROperationObject) => boolean | undefined;
+    /**
+     * Check if the given operation should be treated as a query.
+     *
+     * This affects which outputs are generated for the operation.
+     *
+     * **Default behavior:** GET operations are treated as queries.
+     *
+     * **Resolution order:** If this returns `true` or `false`, it overrides `getKind`.
+     * If it returns `undefined`, `getKind` is used instead.
+     *
+     * @param operation - The operation object to check.
+     * @returns true if the operation is a query, false otherwise, or undefined to fallback to `getKind`.
+     */
+    isQuery?: (operation: IROperationObject) => boolean | undefined;
+  };
 }
 
 interface IROperationObject {
@@ -175,9 +256,15 @@ interface IRSchemaObject
    */
   logicalOperator?: 'and' | 'or';
   /**
+   * When type is `object`, `patternProperties` can be used to define a schema
+   * for properties that match a specific regex pattern.
+   */
+  patternProperties?: Record<string, IRSchemaObject>;
+  /**
    * When type is `object`, `properties` will contain a map of its properties.
    */
   properties?: Record<string, IRSchemaObject>;
+
   /**
    * The names of `properties` can be validated against a schema, irrespective
    * of their values. This can be useful if you don't want to enforce specific
@@ -208,27 +295,33 @@ type IRSecurityObject = SecuritySchemeObject;
 
 type IRServerObject = ServerObject;
 
+type IRWebhookObject = IRPathItemObject;
+
 interface IRModel {
   components?: IRComponentsObject;
   paths?: IRPathsObject;
   servers?: ReadonlyArray<IRServerObject>;
+  webhooks?: Record<string, IRWebhookObject>;
 }
 
 export namespace IR {
   export type BodyObject = IRBodyObject;
   export type ComponentsObject = IRComponentsObject;
   export type Context<Spec extends Record<string, any> = any> = IRContext<Spec>;
-  export type ContextFile = CtxFile;
+  export type ContextFile = IRContextFile;
+  export type Hooks = IRHooks;
   export type Model = IRModel;
   export type OperationObject = IROperationObject;
   export type ParameterObject = IRParameterObject;
   export type ParametersObject = IRParametersObject;
   export type PathItemObject = IRPathItemObject;
   export type PathsObject = IRPathsObject;
+  export type ReferenceObject = ReferenceObject;
   export type RequestBodyObject = IRRequestBodyObject;
   export type ResponseObject = IRResponseObject;
   export type ResponsesObject = IRResponsesObject;
   export type SchemaObject = IRSchemaObject;
   export type SecurityObject = IRSecurityObject;
   export type ServerObject = IRServerObject;
+  export type WebhookObject = IRWebhookObject;
 }

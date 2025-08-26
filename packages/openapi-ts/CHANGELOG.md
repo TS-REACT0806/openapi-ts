@@ -1,5 +1,51 @@
 # @hey-api/openapi-ts
 
+## 0.81.1
+
+### Patch Changes
+
+- [#2516](https://github.com/hey-api/openapi-ts/pull/2516) [`c71d5db`](https://github.com/hey-api/openapi-ts/commit/c71d5dbfc5888f03ab06a7c763ada42c1af6c096) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(typescript): add webhooks configuration options
+
+- [#2515](https://github.com/hey-api/openapi-ts/pull/2515) [`b81051e`](https://github.com/hey-api/openapi-ts/commit/b81051e27945e330c0a7c157aff49029bcd6dfda) Thanks [@malcolm-kee](https://github.com/malcolm-kee)! - fix(parser): correctly handle schema extending discriminated schema
+
+- [#2513](https://github.com/hey-api/openapi-ts/pull/2513) [`34fa59f`](https://github.com/hey-api/openapi-ts/commit/34fa59fe2f0e6b4ba6578f25a6e64f964c04155c) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(client): move sse functions into their own namespace
+
+- [#2516](https://github.com/hey-api/openapi-ts/pull/2516) [`c71d5db`](https://github.com/hey-api/openapi-ts/commit/c71d5dbfc5888f03ab06a7c763ada42c1af6c096) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(validator): add webhooks configuration options
+
+- [#2516](https://github.com/hey-api/openapi-ts/pull/2516) [`c71d5db`](https://github.com/hey-api/openapi-ts/commit/c71d5dbfc5888f03ab06a7c763ada42c1af6c096) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(parser): handle webhooks in OpenAPI 3.1
+
+## 0.81.0
+
+### Minor Changes
+
+- [#2510](https://github.com/hey-api/openapi-ts/pull/2510) [`d43ef3f`](https://github.com/hey-api/openapi-ts/commit/d43ef3f3bb47bad3f4fafbcf7be86b328543f440) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(client): add support for server-sent events (SSE)
+
+## 0.80.18
+
+### Patch Changes
+
+- [#2502](https://github.com/hey-api/openapi-ts/pull/2502) [`ac7efbf`](https://github.com/hey-api/openapi-ts/commit/ac7efbfd96e7a5e530e91655df6ac481c9a5eaa5) Thanks [@malcolm-kee](https://github.com/malcolm-kee)! - fix(parser): OpenAPI 3.1 parser handles multiple `type` values
+
+## 0.80.17
+
+### Patch Changes
+
+- [#2500](https://github.com/hey-api/openapi-ts/pull/2500) [`98d7bc3`](https://github.com/hey-api/openapi-ts/commit/98d7bc37387e16c6f38194a111d6df384eee3a82) Thanks [@max-scopp](https://github.com/max-scopp)! - fix(client): Angular client correctly applies default GET method
+
+## 0.80.16
+
+### Patch Changes
+
+- [#2490](https://github.com/hey-api/openapi-ts/pull/2490) [`03f37ea`](https://github.com/hey-api/openapi-ts/commit/03f37ea9481a28c7c05dba5f0fddfc2bc225e6a0) Thanks [@mrlubos](https://github.com/mrlubos)! - fix(client): Nuxt client receives raw body in request validators
+
+- [#2479](https://github.com/hey-api/openapi-ts/pull/2479) [`4038e1c`](https://github.com/hey-api/openapi-ts/commit/4038e1cef96c031acde97ccf82176a0fedbb3f8c) Thanks [@dracomithril](https://github.com/dracomithril)! - fix(parser): deduplicate security schemas based on name
+
+- [#2489](https://github.com/hey-api/openapi-ts/pull/2489) [`9bfbb63`](https://github.com/hey-api/openapi-ts/commit/9bfbb63bff087da4cffc76603f8c9f45f34f430a) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(parser): input supports Hey API Registry shorthand
+
+- [#2485](https://github.com/hey-api/openapi-ts/pull/2485) [`e074a36`](https://github.com/hey-api/openapi-ts/commit/e074a3600701badc7f220b283a55188dc85a5572) Thanks [@bombillazo](https://github.com/bombillazo)! - feat(parser): input supports ReadMe API Registry with `readme:` prefix
+
+- [#2491](https://github.com/hey-api/openapi-ts/pull/2491) [`ce602fe`](https://github.com/hey-api/openapi-ts/commit/ce602fede185ba622398bdd42e38d3f78323c32c) Thanks [@mrlubos](https://github.com/mrlubos)! - feat(parser): input supports Scalar API Registry with `scalar:` prefix
+
 ## 0.80.15
 
 ### Patch Changes
@@ -116,7 +162,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins
@@ -130,7 +176,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins
@@ -261,7 +307,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins
@@ -438,7 +484,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins
@@ -625,7 +671,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: {
       path: 'src/client',
       tsConfigPath: 'off',
@@ -717,7 +763,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins
@@ -2854,7 +2900,7 @@
 - Better handling of services without tags
 - Updated dependencies
   , // [!code --]
-  path: 'https://get.heyapi.dev/hey-api/backend',
+  path: 'hey-api/backend', // sign up at app.heyapi.dev
   },
   output: 'src/client',
   plugins: ['@hey-api/client-fetch'],
@@ -2926,7 +2972,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: {
       path: 'src/client',
       tsConfigPath: 'off',
@@ -3018,7 +3064,7 @@
 
   ```js
   export default {
-    input: 'https://get.heyapi.dev/hey-api/backend',
+    input: 'hey-api/backend', // sign up at app.heyapi.dev
     output: 'src/client',
     plugins: [
       // ...other plugins

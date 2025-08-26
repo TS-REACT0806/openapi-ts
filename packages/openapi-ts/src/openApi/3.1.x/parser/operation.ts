@@ -1,9 +1,9 @@
 import type { IR } from '../../../ir/types';
 import type { State } from '../../shared/types/state';
+import type { httpMethods } from '../../shared/utils/operation';
 import { operationToId } from '../../shared/utils/operation';
 import type {
   OperationObject,
-  PathItemObject,
   RequestBodyObject,
   ResponseObject,
   SecuritySchemeObject,
@@ -188,7 +188,7 @@ const operationToIrOperation = ({
   }
 
   if (operation.security) {
-    const securitySchemeObjects: Array<IR.SecurityObject> = [];
+    const securitySchemeObjects: Map<string, IR.SecurityObject> = new Map();
 
     for (const securityRequirementObject of operation.security) {
       for (const name in securityRequirementObject) {
@@ -198,12 +198,12 @@ const operationToIrOperation = ({
           continue;
         }
 
-        securitySchemeObjects.push(securitySchemeObject);
+        securitySchemeObjects.set(name, securitySchemeObject);
       }
     }
 
-    if (securitySchemeObjects.length) {
-      irOperation.security = securitySchemeObjects;
+    if (securitySchemeObjects.size) {
+      irOperation.security = Array.from(securitySchemeObjects.values());
     }
   }
 
@@ -213,7 +213,7 @@ const operationToIrOperation = ({
   return irOperation;
 };
 
-export const parseOperation = ({
+const parseOperationObject = ({
   context,
   method,
   operation,
@@ -222,10 +222,36 @@ export const parseOperation = ({
   state,
 }: {
   context: IR.Context;
-  method: Extract<
-    keyof PathItemObject,
-    'delete' | 'get' | 'head' | 'options' | 'patch' | 'post' | 'put' | 'trace'
-  >;
+  method: (typeof httpMethods)[number];
+  operation: Operation;
+  path: keyof IR.PathsObject;
+  securitySchemesMap: Map<string, SecuritySchemeObject>;
+  state: State;
+}) => {
+  if (operation.servers) {
+    context.ir.servers = [...(context.ir.servers ?? []), ...operation.servers];
+  }
+
+  const parsed = operationToIrOperation({
+    context,
+    method,
+    operation,
+    path,
+    securitySchemesMap,
+    state,
+  });
+
+  return { parsed };
+};
+
+export const parsePathOperation = ({
+  context,
+  method,
+  path,
+  ...options
+}: {
+  context: IR.Context;
+  method: (typeof httpMethods)[number];
   operation: Operation;
   path: keyof IR.PathsObject;
   securitySchemesMap: Map<string, SecuritySchemeObject>;
@@ -239,16 +265,43 @@ export const parseOperation = ({
     context.ir.paths[path] = {};
   }
 
-  if (operation.servers) {
-    context.ir.servers = [...(context.ir.servers ?? []), ...operation.servers];
-  }
-
-  context.ir.paths[path][method] = operationToIrOperation({
+  const { parsed } = parseOperationObject({
     context,
     method,
-    operation,
     path,
-    securitySchemesMap,
-    state,
+    ...options,
   });
+
+  context.ir.paths[path][method] = parsed;
+};
+
+export const parseWebhookOperation = ({
+  context,
+  key,
+  method,
+  ...options
+}: {
+  context: IR.Context;
+  key: string;
+  method: (typeof httpMethods)[number];
+  operation: Operation;
+  securitySchemesMap: Map<string, SecuritySchemeObject>;
+  state: State;
+}) => {
+  if (!context.ir.webhooks) {
+    context.ir.webhooks = {};
+  }
+
+  if (!context.ir.webhooks[key]) {
+    context.ir.webhooks[key] = {};
+  }
+
+  const { parsed } = parseOperationObject({
+    context,
+    method,
+    path: key as `/${string}`,
+    ...options,
+  });
+
+  context.ir.webhooks[key][method] = parsed;
 };

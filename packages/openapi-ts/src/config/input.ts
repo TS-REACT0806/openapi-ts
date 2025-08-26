@@ -1,5 +1,7 @@
 import type { Config, UserConfig } from '../types/config';
-import { isReadmeInput, transformReadmeInput } from '../utils/readme';
+import type { Input } from '../types/input';
+import { inputToApiRegistry } from '../utils/input';
+import { heyApiRegistryBaseUrl } from '../utils/input/heyApi';
 
 const defaultWatch: Config['input']['watch'] = {
   enabled: false,
@@ -39,12 +41,7 @@ export const getInput = (userConfig: UserConfig): Config['input'] => {
   };
 
   if (typeof userConfig.input === 'string') {
-    // Handle ReadMe input format transformation
-    if (isReadmeInput(userConfig.input)) {
-      input.path = transformReadmeInput(userConfig.input);
-    } else {
-      input.path = userConfig.input;
-    }
+    input.path = userConfig.input;
   } else if (
     userConfig.input &&
     (userConfig.input.path !== undefined ||
@@ -53,14 +50,9 @@ export const getInput = (userConfig: UserConfig): Config['input'] => {
     // @ts-expect-error
     input = {
       ...input,
-      path: 'https://get.heyapi.dev',
+      path: heyApiRegistryBaseUrl,
       ...userConfig.input,
     };
-
-    // Handle ReadMe input format transformation when path is specified
-    if (typeof input.path === 'string' && isReadmeInput(input.path)) {
-      input.path = transformReadmeInput(input.path);
-    }
 
     // watch only remote files
     if (input.watch !== undefined) {
@@ -71,6 +63,10 @@ export const getInput = (userConfig: UserConfig): Config['input'] => {
       ...input,
       path: userConfig.input as Record<string, unknown>,
     };
+  }
+
+  if (typeof input.path === 'string') {
+    inputToApiRegistry(input as Input & { path: string });
   }
 
   if (

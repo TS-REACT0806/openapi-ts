@@ -1,5 +1,6 @@
 import type { ValueToObject } from '../config/utils/config';
 import type { Package } from '../config/utils/package';
+import type { IR } from '../ir/types';
 import type { OpenApi as LegacyOpenApi } from '../openApi';
 import type { Client as LegacyClient } from '../types/client';
 import type { Files } from '../types/utils';
@@ -26,6 +27,7 @@ export type PluginNames =
   | '@hey-api/sdk'
   | '@hey-api/transformers'
   | '@hey-api/typescript'
+  | '@pinia/colada'
   | '@tanstack/angular-query-experimental'
   | '@tanstack/react-query'
   | '@tanstack/solid-query'
@@ -60,6 +62,13 @@ type BaseConfig = {
   exportFromIndex?: boolean;
   name: AnyPluginName;
   output?: string;
+  /**
+   * Optional hooks to override default plugin behavior.
+   *
+   * Use these to classify resources, control which outputs are generated,
+   * or provide custom behavior for specific resources.
+   */
+  '~hooks'?: IR.Hooks;
 };
 
 /**
@@ -115,6 +124,11 @@ export namespace Plugin {
      */
     name: any;
   };
+
+  /**
+   * Generic wrapper for plugin hooks.
+   */
+  export type Hooks = Pick<BaseConfig, '~hooks'>;
 
   export interface Name<Name extends PluginNames> {
     name: Name;

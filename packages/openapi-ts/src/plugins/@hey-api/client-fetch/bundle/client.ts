@@ -1,4 +1,11 @@
-import type { Client, Config, ResolvedRequestOptions } from './types';
+import { createSseClient } from '../../client-core/bundle/serverSentEvents';
+import type { HttpMethod } from '../../client-core/bundle/types';
+import type {
+  Client,
+  Config,
+  RequestOptions,
+  ResolvedRequestOptions,
+} from './types';
 import {
   buildUrl,
   createConfig,
@@ -31,7 +38,7 @@ export const createClient = (config: Config = {}): Client => {
     ResolvedRequestOptions
   >();
 
-  const request: Client['request'] = async (options) => {
+  const beforeRequest = async (options: RequestOptions) => {
     const opts = {
       ..._config,
       ...options,
@@ -61,6 +68,13 @@ export const createClient = (config: Config = {}): Client => {
     }
 
     const url = buildUrl(opts);
+
+    return { opts, url };
+  };
+
+  const request: Client['request'] = async (options) => {
+    // @ts-expect-error
+    const { opts, url } = await beforeRequest(options);
     const requestInit: ReqInit = {
       redirect: 'follow',
       ...opts,
@@ -92,22 +106,40 @@ export const createClient = (config: Config = {}): Client => {
     };
 
     if (response.ok) {
-      if (
-        response.status === 204 ||
-        response.headers.get('Content-Length') === '0'
-      ) {
-        return opts.responseStyle === 'data'
-          ? {}
-          : {
-              data: {},
-              ...result,
-            };
-      }
-
       const parseAs =
         (opts.parseAs === 'auto'
           ? getParseAs(response.headers.get('Content-Type'))
           : opts.parseAs) ?? 'json';
+
+      if (
+        response.status === 204 ||
+        response.headers.get('Content-Length') === '0'
+      ) {
+        let emptyData: any;
+        switch (parseAs) {
+          case 'arrayBuffer':
+          case 'blob':
+          case 'text':
+            emptyData = await response[parseAs]();
+            break;
+          case 'formData':
+            emptyData = new FormData();
+            break;
+          case 'stream':
+            emptyData = response.body;
+            break;
+          case 'json':
+          default:
+            emptyData = {};
+            break;
+        }
+        return opts.responseStyle === 'data'
+          ? emptyData
+          : {
+              data: emptyData,
+              ...result,
+            };
+      }
 
       let data: any;
       switch (parseAs) {
@@ -178,20 +210,47 @@ export const createClient = (config: Config = {}): Client => {
         };
   };
 
+  const makeMethodFn =
+    (method: Uppercase<HttpMethod>) => (options: RequestOptions) =>
+      request({ ...options, method });
+
+  const makeSseFn =
+    (method: Uppercase<HttpMethod>) => async (options: RequestOptions) => {
+      const { opts, url } = await beforeRequest(options);
+      return createSseClient({
+        ...opts,
+        body: opts.body as BodyInit | null | undefined,
+        headers: opts.headers as unknown as Record<string, string>,
+        method,
+        url,
+      });
+    };
+
   return {
     buildUrl,
-    connect: (options) => request({ ...options, method: 'CONNECT' }),
-    delete: (options) => request({ ...options, method: 'DELETE' }),
-    get: (options) => request({ ...options, method: 'GET' }),
+    connect: makeMethodFn('CONNECT'),
+    delete: makeMethodFn('DELETE'),
+    get: makeMethodFn('GET'),
     getConfig,
-    head: (options) => request({ ...options, method: 'HEAD' }),
+    head: makeMethodFn('HEAD'),
     interceptors,
-    options: (options) => request({ ...options, method: 'OPTIONS' }),
-    patch: (options) => request({ ...options, method: 'PATCH' }),
-    post: (options) => request({ ...options, method: 'POST' }),
-    put: (options) => request({ ...options, method: 'PUT' }),
+    options: makeMethodFn('OPTIONS'),
+    patch: makeMethodFn('PATCH'),
+    post: makeMethodFn('POST'),
+    put: makeMethodFn('PUT'),
     request,
     setConfig,
-    trace: (options) => request({ ...options, method: 'TRACE' }),
-  };
+    sse: {
+      connect: makeSseFn('CONNECT'),
+      delete: makeSseFn('DELETE'),
+      get: makeSseFn('GET'),
+      head: makeSseFn('HEAD'),
+      options: makeSseFn('OPTIONS'),
+      patch: makeSseFn('PATCH'),
+      post: makeSseFn('POST'),
+      put: makeSseFn('PUT'),
+      trace: makeSseFn('TRACE'),
+    },
+    trace: makeMethodFn('TRACE'),
+  } as Client;
 };

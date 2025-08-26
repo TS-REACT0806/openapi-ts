@@ -295,7 +295,9 @@ const parseObject = ({
     const isEmptyObjectInAllOf =
       state.inAllOf &&
       schema.additionalProperties === false &&
-      (!schema.properties || Object.keys(schema.properties).length === 0);
+      (!schema.properties || Object.keys(schema.properties).length === 0) &&
+      (!schema.patternProperties ||
+        Object.keys(schema.patternProperties).length === 0);
 
     if (!isEmptyObjectInAllOf) {
       irSchema.additionalProperties = {
@@ -309,6 +311,24 @@ const parseObject = ({
       state,
     });
     irSchema.additionalProperties = irAdditionalPropertiesSchema;
+  }
+
+  if (schema.patternProperties) {
+    const patternProperties: Record<string, IR.SchemaObject> = {};
+
+    for (const pattern in schema.patternProperties) {
+      const patternSchema = schema.patternProperties[pattern]!;
+      const irPatternSchema = schemaToIrSchema({
+        context,
+        schema: patternSchema,
+        state,
+      });
+      patternProperties[pattern] = irPatternSchema;
+    }
+
+    if (Object.keys(patternProperties).length) {
+      irSchema.patternProperties = patternProperties;
+    }
   }
 
   if (schema.propertyNames) {
@@ -405,29 +425,37 @@ const parseAllOf = ({
         const values = discriminatorValues(
           state.$ref,
           ref.discriminator.mapping,
+          // If the ref has oneOf, we only use the schema name as the value
+          // only if current schema is part of the oneOf. Else it is extending
+          // the ref schema
+          ref.oneOf
+            ? () => ref.oneOf!.some((o) => '$ref' in o && o.$ref === state.$ref)
+            : undefined,
         );
-        const valueSchemas: ReadonlyArray<IR.SchemaObject> = values.map(
-          (value) => ({
-            const: value,
-            type: 'string',
-          }),
-        );
-        const irDiscriminatorSchema: IR.SchemaObject = {
-          properties: {
-            [ref.discriminator.propertyName]:
-              valueSchemas.length > 1
-                ? {
-                    items: valueSchemas,
-                    logicalOperator: 'or',
-                  }
-                : valueSchemas[0]!,
-          },
-          type: 'object',
-        };
-        if (ref.required?.includes(ref.discriminator.propertyName)) {
-          irDiscriminatorSchema.required = [ref.discriminator.propertyName];
+        if (values.length > 0) {
+          const valueSchemas: ReadonlyArray<IR.SchemaObject> = values.map(
+            (value) => ({
+              const: value,
+              type: 'string',
+            }),
+          );
+          const irDiscriminatorSchema: IR.SchemaObject = {
+            properties: {
+              [ref.discriminator.propertyName]:
+                valueSchemas.length > 1
+                  ? {
+                      items: valueSchemas,
+                      logicalOperator: 'or',
+                    }
+                  : valueSchemas[0]!,
+            },
+            type: 'object',
+          };
+          if (ref.required?.includes(ref.discriminator.propertyName)) {
+            irDiscriminatorSchema.required = [ref.discriminator.propertyName];
+          }
+          schemaItems.push(irDiscriminatorSchema);
         }
-        schemaItems.push(irDiscriminatorSchema);
       }
 
       if (!state.circularReferenceTracker.has(compositionSchema.$ref)) {
@@ -920,7 +948,7 @@ const parseManyTypes = ({
     } else {
       const irTypeSchema = parseOneType({
         context,
-        irSchema: typeIrSchema,
+        irSchema: { ...typeIrSchema },
         schema: {
           ...schema,
           type,
