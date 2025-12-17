@@ -1,33 +1,33 @@
-/* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
+import type { AnalysisContext, AstContext } from '@hey-api/codegen-core';
 import ts from 'typescript';
 
-import { TypeTsDsl } from '../base';
-import { mixin } from '../mixins/apply';
+import { TsDsl } from '../base';
 import { DocMixin } from '../mixins/doc';
 import { ParamMixin } from '../mixins/param';
 import { TypeParamsMixin } from '../mixins/type-params';
-import { TypeExprTsDsl } from './expr';
+import { TypeReturnsMixin } from '../mixins/type-returns';
 
-export class TypeFuncTsDsl extends TypeTsDsl<ts.FunctionTypeNode> {
-  protected _returns?: TypeTsDsl;
+const Mixed = DocMixin(
+  ParamMixin(TypeParamsMixin(TypeReturnsMixin(TsDsl<ts.FunctionTypeNode>))),
+);
 
-  /** Sets the return type. */
-  returns(type: string | TypeTsDsl): this {
-    this._returns = type instanceof TypeTsDsl ? type : new TypeExprTsDsl(type);
-    return this;
+export class TypeFuncTsDsl extends Mixed {
+  readonly '~dsl' = 'TypeFuncTsDsl';
+
+  override analyze(ctx: AnalysisContext): void {
+    super.analyze(ctx);
   }
 
-  $render(): ts.FunctionTypeNode {
-    if (this._returns === undefined) {
+  override toAst(ctx: AstContext) {
+    const returns = this.$returns(ctx);
+    if (returns === undefined) {
       throw new Error('Missing return type in function type DSL');
     }
-    return ts.factory.createFunctionTypeNode(
-      this.$generics(),
-      this.$params(),
-      this.$type(this._returns),
+    const node = ts.factory.createFunctionTypeNode(
+      this.$generics(ctx),
+      this.$params(ctx),
+      returns,
     );
+    return this.$docs(ctx, node);
   }
 }
-
-export interface TypeFuncTsDsl extends DocMixin, ParamMixin, TypeParamsMixin {}
-mixin(TypeFuncTsDsl, DocMixin, ParamMixin, TypeParamsMixin);

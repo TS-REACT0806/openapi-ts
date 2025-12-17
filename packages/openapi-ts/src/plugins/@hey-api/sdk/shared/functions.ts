@@ -1,35 +1,17 @@
-import type { IR } from '~/ir/types';
 import { getClientPlugin } from '~/plugins/@hey-api/client-core/utils';
 import {
   createOperationComment,
   isOperationOptionsRequired,
 } from '~/plugins/shared/utils/operation';
 import { $ } from '~/ts-dsl';
-import { reservedJavaScriptKeywordsRegExp } from '~/utils/regexp';
 
 import type { HeyApiSdkPlugin } from '../types';
 import { nuxtTypeComposable, nuxtTypeDefault } from './constants';
-import { operationParameters, operationStatements } from './operation';
-
-const serviceFunctionIdentifier = ({
-  id,
-  operation,
-  plugin,
-}: {
-  id: string;
-  operation: IR.OperationObject;
-  plugin: HeyApiSdkPlugin['Instance'];
-}) => {
-  if (plugin.config.methodNameBuilder) {
-    return plugin.config.methodNameBuilder(operation);
-  }
-
-  if (id.match(reservedJavaScriptKeywordsRegExp)) {
-    return `${id}_`;
-  }
-
-  return id;
-};
+import {
+  operationMethodName,
+  operationParameters,
+  operationStatements,
+} from './operation';
 
 export const generateFlatSdk = ({
   plugin,
@@ -66,8 +48,7 @@ export const generateFlatSdk = ({
         operation,
         plugin,
       });
-      const symbol = plugin.registerSymbol({
-        exported: true,
+      const symbol = plugin.symbol(operationMethodName({ operation, plugin }), {
         meta: {
           category: 'sdk',
           path: event._path,
@@ -76,14 +57,9 @@ export const generateFlatSdk = ({
           tags: event.tags,
           tool: 'sdk',
         },
-        name: serviceFunctionIdentifier({
-          id: operation.id,
-          operation,
-          plugin,
-        }),
       });
-      const node = $.const(symbol.placeholder)
-        .export(symbol.exported)
+      const node = $.const(symbol)
+        .export()
         .$if(createOperationComment(operation), (c, v) => c.doc(v))
         .assign(
           $.func()
@@ -98,14 +74,14 @@ export const generateFlatSdk = ({
                         plugin.referenceSymbol({
                           category: 'external',
                           resource: 'client.Composable',
-                        }).placeholder,
+                        }),
                       )
                       .default($.type.literal('$fetch')),
                   )
                   .generic(nuxtTypeDefault, (g) =>
                     g.$if(
                       symbolResponse,
-                      (t, s) => t.extends(s.placeholder).default(s.placeholder),
+                      (t, s) => t.extends(s).default(s),
                       (t) => t.default('undefined'),
                     ),
                   ),
@@ -122,7 +98,7 @@ export const generateFlatSdk = ({
             )
             .do(...statements),
         );
-      plugin.setSymbolValue(symbol, node);
+      plugin.node(node);
     },
     {
       order: 'declarations',

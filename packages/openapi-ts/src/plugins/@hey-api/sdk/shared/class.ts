@@ -47,23 +47,23 @@ type SdkClassEntry = {
 export const registryName = '__registry';
 
 const createRegistryClass = ({
-  sdkName,
+  plugin,
+  sdkSymbol,
   symbol,
 }: {
   plugin: HeyApiSdkPlugin['Instance'];
-  sdkName: string;
+  sdkSymbol: Symbol;
   symbol: Symbol;
 }): TsDsl => {
-  const defaultKey = 'defaultKey';
-  const instances = 'instances';
-  return $.class(symbol.placeholder)
-    .export(symbol.exported)
+  const symbolDefaultKey = plugin.symbol('defaultKey');
+  const symbolInstances = plugin.symbol('instances');
+  return $.class(symbol)
     .generic('T')
-    .field(defaultKey, (f) =>
+    .field(symbolDefaultKey, (f) =>
       f.private().readonly().assign($.literal('default')),
     )
     .newline()
-    .field(instances, (f) =>
+    .field(symbolInstances, (f) =>
       f
         .private()
         .readonly()
@@ -78,14 +78,14 @@ const createRegistryClass = ({
         .do(
           $.const('instance').assign(
             $('this')
-              .attr('instances')
+              .attr(symbolInstances)
               .attr('get')
-              .call($('key').coalesce($('this').attr(defaultKey))),
+              .call($('key').coalesce($('this').attr(symbolDefaultKey))),
           ),
           $.if($.not('instance')).do(
             $.throw('Error').message(
               $.template('No SDK client found. Create one with "new ')
-                .add(sdkName)
+                .add(sdkSymbol)
                 .add('()" to fix this error.'),
             ),
           ),
@@ -100,9 +100,9 @@ const createRegistryClass = ({
         .param('key', (p) => p.type('string').optional())
         .do(
           $('this')
-            .attr(instances)
+            .attr(symbolInstances)
             .attr('set')
-            .call($('key').coalesce($('this').attr(defaultKey)), 'value'),
+            .call($('key').coalesce($('this').attr(symbolDefaultKey)), 'value'),
         ),
     );
 };
@@ -122,9 +122,8 @@ const createClientClass = ({
     category: 'external',
     resource: 'client.Client',
   });
-  return $.class(symbol.placeholder)
-    .export(symbol.exported)
-    .field('client', (f) => f.protected().type(symbolClient.placeholder))
+  return $.class(symbol)
+    .field('client', (f) => f.protected().type(symbolClient))
     .newline()
     .init((i) =>
       i
@@ -135,7 +134,7 @@ const createClientClass = ({
               $.type
                 .object()
                 .prop('client', (p) =>
-                  p.optional(optionalClient).type(symbolClient.placeholder),
+                  p.optional(optionalClient).type(symbolClient),
                 ),
             ),
         )
@@ -146,7 +145,7 @@ const createClientClass = ({
               $('args')
                 .attr('client')
                 .optional(optionalClient)
-                .$if(optionalClient, (a) => a.coalesce(symClient!.placeholder)),
+                .$if(optionalClient, (a) => a.coalesce(symClient!)),
             ),
         ),
     );
@@ -182,11 +181,7 @@ export const generateClassSdk = ({
           })
         : undefined;
 
-      const classes = operationClasses({
-        context: plugin.context,
-        operation,
-        plugin,
-      });
+      const classes = operationClasses({ operation, plugin });
 
       for (const entry of classes.values()) {
         entry.path.forEach((currentClassName, index) => {
@@ -237,10 +232,9 @@ export const generateClassSdk = ({
             symbolCurrentClass.meta!.resourceId!,
           )!;
 
-          // avoid duplicate methods
-          if (currentClass.methods.has(entry.methodName)) {
-            return;
-          }
+          const methodName = entry.methodName;
+          if (currentClass.methods.has(methodName)) return;
+          currentClass.methods.add(methodName);
 
           const opParameters = operationParameters({
             isRequiredOptions,
@@ -253,7 +247,7 @@ export const generateClassSdk = ({
             operation,
             plugin,
           });
-          const functionNode = $.method(entry.methodName, (m) =>
+          const functionNode = $.method(methodName, (m) =>
             m
               .$if(createOperationComment(operation), (m, v) => m.doc(v))
               .public()
@@ -268,14 +262,12 @@ export const generateClassSdk = ({
                           plugin.referenceSymbol({
                             category: 'external',
                             resource: 'client.Composable',
-                          }).placeholder,
+                          }),
                         )
                         .default($.type.literal('$fetch')),
                     )
                     .generic(nuxtTypeDefault, (t) =>
-                      t.$if(symbolResponse, (t, s) =>
-                        t.extends(s.placeholder).default(s.placeholder),
-                      ),
+                      t.$if(symbolResponse, (t, s) => t.extends(s).default(s)),
                     ),
                 (m) =>
                   m.generic('ThrowOnError', (t) =>
@@ -298,8 +290,6 @@ export const generateClassSdk = ({
             currentClass.nodes.push($.newline(), functionNode);
           }
 
-          currentClass.methods.add(entry.methodName);
-
           sdkClasses.set(symbolCurrentClass.meta!.resourceId!, currentClass);
         });
       }
@@ -309,132 +299,104 @@ export const generateClassSdk = ({
     },
   );
 
-  const symbolHeyApiClient = plugin.config.instance
-    ? plugin.registerSymbol({
-        exported: false,
-        kind: 'class',
-        meta: {
-          category: 'utility',
-          resource: 'class',
-          resourceId: 'HeyApiClient',
-          tool: 'sdk',
-        },
-        name: 'HeyApiClient',
-      })
-    : undefined;
-  const symbolHeyApiRegistry = plugin.config.instance
-    ? plugin.registerSymbol({
-        exported: false,
-        kind: 'class',
-        meta: {
-          category: 'utility',
-          resource: 'class',
-          resourceId: 'HeyApiRegistry',
-          tool: 'sdk',
-        },
-        name: 'HeyApiRegistry',
-      })
-    : undefined;
+  const clientIndex = plugin.config.instance ? plugin.node(null) : undefined;
+  const symbolClient =
+    clientIndex !== undefined
+      ? plugin.symbol('HeyApiClient', {
+          meta: {
+            category: 'utility',
+            resource: 'class',
+            resourceId: 'HeyApiClient',
+            tool: 'sdk',
+          },
+        })
+      : undefined;
+  const registryIndex = plugin.config.instance ? plugin.node(null) : undefined;
 
   const generateClass = (currentClass: SdkClassEntry) => {
-    if (generatedClasses.has(currentClass.className)) {
-      return;
-    }
-
     const resourceId = currentClass.className;
+
+    if (generatedClasses.has(resourceId)) return;
     generatedClasses.add(resourceId);
 
-    if (currentClass.classes.size) {
-      for (const childClassName of currentClass.classes) {
-        const childClass = sdkClasses.get(childClassName)!;
-        generateClass(childClass);
+    if (clientIndex !== undefined && symbolClient && !symbolClient.node) {
+      const node = createClientClass({ plugin, symbol: symbolClient });
+      plugin.node(node, clientIndex);
+    }
 
-        const refChildClass = plugin.referenceSymbol({
-          category: 'utility',
-          resource: 'class',
-          resourceId: childClass.className,
-          tool: 'sdk',
-        });
+    for (const childClassName of currentClass.classes) {
+      const childClass = sdkClasses.get(childClassName)!;
+      generateClass(childClass);
 
-        const originalMemberName = stringCase({
-          case: 'camelCase',
-          value: refChildClass.meta!.resourceId!,
-        });
-        // avoid collisions with existing method names
-        let memberName = originalMemberName;
-        if (currentClass.methods.has(memberName)) {
-          let index = 2;
-          let attempt = `${memberName}${index}`;
-          while (currentClass.methods.has(attempt)) {
-            attempt = `${memberName}${index++}`;
-          }
-          memberName = attempt;
+      const refChildClass = plugin.referenceSymbol({
+        category: 'utility',
+        resource: 'class',
+        resourceId: childClass.className,
+        tool: 'sdk',
+      });
+
+      const originalMemberName = stringCase({
+        case: 'camelCase',
+        value: refChildClass.meta!.resourceId!,
+      });
+      // avoid collisions with existing method names
+      let memberName = originalMemberName;
+      if (currentClass.methods.has(memberName)) {
+        let index = 2;
+        let attempt = `${memberName}${index}`;
+        while (currentClass.methods.has(attempt)) {
+          attempt = `${memberName}${index++}`;
         }
-        currentClass.methods.add(memberName);
+        memberName = attempt;
+      }
+      currentClass.methods.add(memberName);
 
+      if (currentClass.nodes.length > 0) {
+        currentClass.nodes.push($.newline());
+      }
+
+      if (plugin.config.instance) {
+        const privateName = plugin.symbol(`_${memberName}`);
+        const privateNode = $.field(privateName, (f) =>
+          f.private().optional().type(refChildClass),
+        );
+        currentClass.nodes.push(privateNode);
+        const getterNode = $.getter(memberName, (g) =>
+          g.returns(refChildClass).do(
+            $('this')
+              .attr(privateName)
+              .nullishAssign(
+                $.new(refChildClass).args(
+                  $.object().prop('client', $('this').attr('client')),
+                ),
+              )
+              .return(),
+          ),
+        );
+        currentClass.nodes.push(getterNode);
+      } else {
         const subClassReferenceNode = plugin.isSymbolRegistered(
           refChildClass.id,
         )
-          ? $.field(memberName, (f) =>
-              f
-                .static(!plugin.config.instance)
-                .assign(
-                  plugin.config.instance
-                    ? $.new(refChildClass.placeholder).args(
-                        $.object().prop('client', $('this').attr('client')),
-                      )
-                    : $(refChildClass.placeholder),
-                ),
-            )
+          ? $.field(memberName, (f) => f.static().assign($(refChildClass)))
           : $.getter(memberName, (g) =>
-              g
-                .$if(!plugin.config.instance, (g) => g.public().static())
-                .do(
-                  $.return(
-                    plugin.config.instance
-                      ? $.new(refChildClass.placeholder).args(
-                          $.object().prop('client', $('this').attr('client')),
-                        )
-                      : refChildClass.placeholder,
-                  ),
-                ),
+              g.public().static().do($.return(refChildClass)),
             );
-
-        if (!currentClass.nodes.length) {
-          currentClass.nodes.push(subClassReferenceNode);
-        } else {
-          currentClass.nodes.push($.newline(), subClassReferenceNode);
-        }
+        currentClass.nodes.push(subClassReferenceNode);
       }
     }
 
-    if (
-      symbolHeyApiClient &&
-      !plugin.gen.symbols.hasValue(symbolHeyApiClient.id)
-    ) {
-      const node = createClientClass({
-        plugin,
-        symbol: symbolHeyApiClient,
-      });
-      plugin.setSymbolValue(symbolHeyApiClient, node);
-    }
-
-    const symbol = plugin.registerSymbol({
-      exported: true,
-      kind: 'class',
+    const symbol = plugin.symbol(resourceId, {
       meta: {
         category: 'utility',
         resource: 'class',
         resourceId,
         tool: 'sdk',
       },
-      name: resourceId,
     });
 
-    if (currentClass.root && symbolHeyApiRegistry) {
-      const symClient = plugin.getSymbol({
-        category: 'client',
-      });
+    if (currentClass.root && registryIndex !== undefined) {
+      const symClient = plugin.getSymbol({ category: 'client' });
       const isClientRequired = !plugin.config.client || !symClient;
       const symbolClient = plugin.referenceSymbol({
         category: 'external',
@@ -447,14 +409,14 @@ export const generateClassSdk = ({
               $.type
                 .object()
                 .prop('client', (p) =>
-                  p.required(isClientRequired).type(symbolClient.placeholder),
+                  p.required(isClientRequired).type(symbolClient),
                 )
                 .prop('key', (p) => p.optional().type('string')),
             ),
           )
           .do(
             $('super').call('args'),
-            $(symbol.placeholder)
+            $(symbol)
               .attr(registryName)
               .attr('set')
               .call('this', $('args').attr('key').required(isClientRequired)),
@@ -467,38 +429,44 @@ export const generateClassSdk = ({
         currentClass.nodes.unshift(ctor, $.newline());
       }
 
+      const symbolRegistry = plugin.symbol('HeyApiRegistry', {
+        meta: {
+          category: 'utility',
+          resource: 'class',
+          resourceId: 'HeyApiRegistry',
+          tool: 'sdk',
+        },
+      });
       const node = createRegistryClass({
         plugin,
-        sdkName: symbol.placeholder,
-        symbol: symbolHeyApiRegistry,
+        sdkSymbol: symbol,
+        symbol: symbolRegistry,
       });
-      plugin.setSymbolValue(symbolHeyApiRegistry, node);
+      plugin.node(node, registryIndex);
       const registryNode = $.field(registryName, (f) =>
         f
           .public()
           .static()
           .readonly()
-          .assign(
-            $.new(symbolHeyApiRegistry.placeholder).generic(symbol.placeholder),
-          ),
+          .assign($.new(symbolRegistry).generic(symbol)),
       );
       currentClass.nodes.unshift(registryNode, $.newline());
     }
 
-    const node = $.class(symbol.placeholder)
-      .export(symbol.exported)
-      .extends(symbolHeyApiClient?.placeholder)
-      .$if(currentClass.root && isAngularClient, (c) =>
+    const node = $.class(symbol)
+      .export()
+      .extends(symbolClient)
+      .$if(isAngularClient && currentClass.root, (c) =>
         c.decorator(
           plugin.referenceSymbol({
             category: 'external',
             resource: '@angular/core.Injectable',
-          }).placeholder,
+          }),
           $.object().prop('providedIn', $.literal('root')),
         ),
       )
       .do(...currentClass.nodes);
-    plugin.setSymbolValue(symbol, node);
+    plugin.node(node);
   };
 
   for (const sdkClass of sdkClasses.values()) {
